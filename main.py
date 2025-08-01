@@ -14,33 +14,32 @@ intents = discord.Intents.all()
 bot = discord.ext.commands.Bot(command_prefix="!", intents=intents)
 
 logging.basicConfig(level=logging.INFO)
-
-
+t_now = datetime.datetime.now()
+year = t_now.year
+month = t_now.month + 1 if t_now.day > 1 or (t_now.day == 1 and t_now.time() > datetime.time(0, 0)) else t_now.month
+schedule_time = datetime.datetime(year, month, 1, 0, 0, 0, 0)
+@discord.ext.tasks.loop(seconds=59)
 async def every_first_of_month():
     """
     Kinda scuffed function to run every 1st of the month at midnight.
     :return:
     """
     # Set initial schedule_time to the next 1st of the month at midnight
-    now = datetime.datetime.now()
-    year = now.year
-    month = now.month + 1 if now.day > 1 or (now.day == 1 and now.time() > datetime.time(0, 0)) else now.month
-    schedule_time = datetime.datetime(year, month, 1, 0, 0, 0, 0)
+    global schedule_time
+
     
     await bot.wait_until_ready()
     
-    while not bot.is_closed():
-        now = datetime.datetime.now()
-        if schedule_time <= now:
-            # func
-            # Schedule for the next 1st of the month
-            next_month = schedule_time.month + 1
-            next_year = schedule_time.year
-            if next_month > 12:
-                next_month = 1
-                next_year += 1
-            schedule_time = datetime.datetime(next_year, next_month, 1, 0, 0, 0, 0)
-        await asyncio.sleep(59)  # Check every minute
+    now = datetime.datetime.now()
+    if schedule_time <= now:
+        # func
+        # Schedule for the next 1st of the month
+        next_month = schedule_time.month + 1
+        next_year = schedule_time.year
+        if next_month > 12:
+            next_month = 1
+            next_year += 1
+        schedule_time = datetime.datetime(next_year, next_month, 1, 0, 0, 0, 0)
 
 
 async def load_extensions() -> bool:
@@ -110,8 +109,6 @@ async def on_ready() -> None:
 
 
 async def main() -> None:
-    bot.loop.create_task(every_first_of_month())
-    print("a")
     bot.run(os.getenv('DISCORD_TOKEN'), reconnect=True)
 
 
