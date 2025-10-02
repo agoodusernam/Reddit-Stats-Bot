@@ -10,7 +10,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-intents = discord.Intents.all()
+intents = discord.Intents.default()
+intents.message_content = True
 bot = discord.ext.commands.Bot(command_prefix="!", intents=intents)
 
 logging.basicConfig(level=logging.INFO)
@@ -18,6 +19,7 @@ t_now = datetime.datetime.now()
 year = t_now.year
 month = t_now.month + 1 if t_now.day > 1 or (t_now.day == 1 and t_now.time() > datetime.time(0, 0)) else t_now.month
 schedule_time = datetime.datetime(year, month, 1, 0, 0, 0, 0)
+
 @discord.ext.tasks.loop(seconds=59)
 async def every_first_of_month():
     """

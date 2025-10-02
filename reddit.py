@@ -1,19 +1,10 @@
 import os
-from typing import TypedDict
 
 import praw
 from praw.models import Subreddit
 
 reddit_instance: praw.Reddit | None = None
 bot_names: list[str] = ["AutoModerator", "chessvision-ai-bot", "admin-tattler", "toolboxnotesxfer"]
-
-class ModlogStatsUser(TypedDict):
-    """
-    Represents a user in the moderation log statistics.
-    """
-    name: str
-    actions: dict[str, int] | None
-
 
 def get_reddit_instance() -> praw.Reddit:
     """
@@ -67,22 +58,24 @@ def get_moderators(subreddit: Subreddit.SubredditModeration) -> list[str]:
     global bot_names
     return [mod.name for mod in subreddit.moderator() if mod.name not in bot_names]
 
-def sort_actions(actions: list[praw.models.ModAction]) -> list[ModlogStatsUser]:
+def count_actions(actions: list[praw.models.ModAction]) -> dict[str, int]:
     """
-    Sorts moderation actions by user and action type.
+    Counts the number of actions performed by each moderator in the provided list of actions.
     
     :param actions: list[praw.models.ModAction]: A list of moderation actions.
-    :return: list[ModlogStatsUser]: A list of ModlogStatsUser objects containing usernames and action counts.
+    :return: list[list[dict[str, int]]]: A list of dicts containing usernames and action counts.
     """
-    #TODO: How do I get the action type?
+    
     global bot_names
-    user_actions: list[ModlogStatsUser] = []
+    user_actions: dict[str, int] = {}
     for action in actions:
         user = action.mod.name if action.mod is not None else None
         if user is None or user in bot_names:
             continue
         
-        # Check if user already exists in the list
-        
-        
-        
+        if user in user_actions:
+            user_actions[user] += 1
+        else:
+            user_actions[user] = 1
+            
+    return dict(sorted(user_actions.items(), key=lambda item: item[1]))
